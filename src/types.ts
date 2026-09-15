@@ -13,6 +13,7 @@ export interface Product {
   unitPrice: number;
   demandChange: number;
   forecast: number[];
+  extraFields?: Record<string, string>;
 }
 
 export interface Insight {
