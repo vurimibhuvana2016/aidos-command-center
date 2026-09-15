@@ -25,7 +25,7 @@ export function Sidebar({ page, setPage, open, setOpen }: Props) {
         {nav.map(({ page: item, icon: Icon, eyebrow }) => <button key={item} className={page === item ? "active" : ""} onClick={() => { setPage(item); setOpen(false); }}><Icon size={18}/><span>{item}</span>{eyebrow && <b>{eyebrow}</b>}</button>)}
       </nav>
       <div className="sidebar-note"><Sparkles size={17}/><div><strong>Demo environment</strong><p>Safe sample data · no API key required</p></div></div>
-      <div className="sidebar-user"><span className="user-avatar">AR</span><span><strong>Arjun Rao</strong><small>Operations manager</small></span><LogOut size={16}/></div>
+      <div className="sidebar-user"><span className="user-avatar">VU</span><span><strong>Vurimi</strong><small>Operations manager</small></span><LogOut size={16}/></div>
     </aside>
   </>;
 }

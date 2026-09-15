@@ -24,7 +24,7 @@ export function Copilot({ insights, open, setOpen, onApprove }: { insights:Insig
     <aside className={`copilot ${open ? "open" : ""}`} aria-hidden={!open}>
       <header><span className="ai-orb"><Bot size={19}/><i/></span><div><strong>AIDOS Copilot</strong><small><span/> Grounded in workspace data</small></div><button onClick={() => setOpen(false)} aria-label="Close copilot"><X size={19}/></button></header>
       <div className="copilot-scroll">
-        <div className="copilot-intro"><Sparkles size={18}/><strong>Good morning, Arjun.</strong><p>I found three signals that can affect service level or working capital today.</p></div>
+        <div className="copilot-intro"><Sparkles size={18}/><strong>Good morning, Vurimi.</strong><p>I found three signals that can affect service level or working capital today.</p></div>
         <div className="user-bubble">{question || "Give me today's operating brief."}</div>
         {thinking ? <div className="thinking"><i/><i/><i/> Analyzing connected data</div> : <div className="answer-card">
           <div className="answer-label"><MessageSquareText size={14}/> Answer</div>
