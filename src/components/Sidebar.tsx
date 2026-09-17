@@ -28,7 +28,7 @@ export function Sidebar({ page, setPage, open, setOpen, session, onLogout }: Pro
         {nav.map(({ page: item, icon: Icon, eyebrow }) => <button key={item} className={page === item ? "active" : ""} onClick={() => { setPage(item); setOpen(false); }}><Icon size={18}/><span>{item}</span>{eyebrow && <b>{eyebrow}</b>}</button>)}
       </nav>
       <div className="sidebar-note"><Sparkles size={17}/><div><strong>Demo environment</strong><p>Safe sample data · no API key required</p></div></div>
-      <button className="sidebar-user" onClick={onLogout} aria-label="Log out"><span className="user-avatar">{initials(session.name)}</span><span><strong>{session.name}</strong><small>Operations manager</small></span><LogOut size={16}/></button>
+      <button className="sidebar-user" onClick={onLogout} aria-label="Log out">{session.picture ? <img className="user-avatar" src={session.picture} alt=""/> : <span className="user-avatar">{initials(session.name)}</span>}<span><strong>{session.name}</strong><small>{session.email ?? "Operations manager"}</small></span><LogOut size={16}/></button>
     </aside>
   </>;
 }
