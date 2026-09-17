@@ -7,6 +7,7 @@ import { MetricCard } from "./components/MetricCard";
 import { RiskPill } from "./components/RiskPill";
 import { Sidebar } from "./components/Sidebar";
 import { categoryMix, initialActivity, products as demoProducts, salesTrend } from "./data/demo";
+import { generateWorkspaceData } from "./lib/demoGenerator";
 import { analyzeAll } from "./lib/intelligence";
 import type { Activity, Insight, Page, Product, Risk } from "./types";
 
@@ -38,7 +39,12 @@ function App() {
   useEffect(() => { const key = (e:KeyboardEvent) => { if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); setCopilot(v=>!v); } }; window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, []);
   function notify(message:string) { setToast(message); window.setTimeout(() => setToast(""), 2800); }
   function addActivity(label:string, type:Activity["type"] = "approved") { setActivity(a => [{ id:String(Date.now()), type, label, time:"Just now" }, ...a]); notify("Added to today's action plan"); }
-  function resetDemo() { localStorage.removeItem(STORAGE_KEY); setProducts(demoProducts); setActivity(initialActivity); setCustomFields([]); notify("Demo workspace restored"); }
+  function resetDemo() {
+    localStorage.removeItem(STORAGE_KEY);
+    const generated = generateWorkspaceData(session?.workspace || session?.name || "AIDOS");
+    setProducts(generated.products); setActivity(generated.activity); setCustomFields([]);
+    notify("Demo workspace restored");
+  }
   function updateProductField(sku:string, field:string, value:string) {
     setProducts(ps => ps.map(p => p.sku === sku ? { ...p, extraFields: { ...p.extraFields, [field]: value } } : p));
   }
@@ -59,7 +65,18 @@ function App() {
   function mergeCustomFields(names:string[]) {
     setCustomFields(cf => Array.from(new Set([...cf, ...names])));
   }
-  function handleLogin(s: Session) { setSession(s); try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch { /* ignore */ } }
+  function handleLogin(s: Session) {
+    setSession(s);
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+    let hasExistingWorkspaceData = false;
+    try { hasExistingWorkspaceData = Array.isArray(JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")?.products); } catch { /* ignore */ }
+    if (!hasExistingWorkspaceData) {
+      const generated = generateWorkspaceData(s.workspace || s.name);
+      setProducts(generated.products);
+      setActivity(generated.activity);
+      setCustomFields([]);
+    }
+  }
   function handleLogout() { setSession(null); try { localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ } }
 
   if (!session) return <Login onLogin={handleLogin}/>;
