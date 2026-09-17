@@ -67,7 +67,7 @@ function App() {
   return <div className="app-shell">
     <Sidebar page={page} setPage={setPage} open={mobileNav} setOpen={setMobileNav} session={session} onLogout={handleLogout}/>
     <div className="main-column">
-      <Topbar page={page} onCopilot={() => setCopilot(true)}/>
+      <Topbar page={page} onCopilot={() => setCopilot(true)} activity={activity}/>
       <main>
         {page === "Command center" && <Dashboard insights={insights} activity={activity} setPage={setPage} onApprove={addActivity} openCopilot={()=>setCopilot(true)} name={session.name}/>}
         {page === "Inventory" && <Inventory insights={insights} customFields={customFields} onFieldChange={updateProductField}/>}
@@ -81,8 +81,26 @@ function App() {
   </div>;
 }
 
-function Topbar({ page, onCopilot }:{ page:Page; onCopilot:()=>void }) {
-  return <header className="topbar"><div><span>Operations</span><ChevronRight size={13}/><strong>{page}</strong></div><div className="topbar-actions"><span className="last-sync"><i/> Data synced 2 min ago</span><button className="icon-button" aria-label="Notifications"><Bell size={19}/><b>3</b></button><button className="ask-button" onClick={onCopilot}><Sparkles size={16}/> Ask AIDOS <kbd>⌘ K</kbd></button></div></header>;
+function Topbar({ page, onCopilot, activity }:{ page:Page; onCopilot:()=>void; activity:Activity[] }) {
+  const [open, setOpen] = useState(false);
+  const recent = activity.slice(0, 6);
+  return <header className="topbar">
+    <div><span>Operations</span><ChevronRight size={13}/><strong>{page}</strong></div>
+    <div className="topbar-actions">
+      <span className="last-sync"><i/> Data synced 2 min ago</span>
+      <div className="notif-wrap">
+        <button className="icon-button" aria-label="Notifications" onClick={() => setOpen(o => !o)}><Bell size={19}/>{activity.length > 0 && <b>{activity.length > 9 ? "9+" : activity.length}</b>}</button>
+        {open && <>
+          <button className="notif-scrim" onClick={() => setOpen(false)} aria-label="Close notifications"/>
+          <div className="notif-panel">
+            <header>Recent activity</header>
+            {recent.length ? <div className="activity-list">{recent.map(a => <div key={a.id}><span className={a.type}><ActivityIcon type={a.type}/></span><p><strong>{a.label}</strong><small>{a.time}</small></p></div>)}</div> : <p className="notif-empty">No activity yet.</p>}
+          </div>
+        </>}
+      </div>
+      <button className="ask-button" onClick={onCopilot}><Sparkles size={16}/> Ask AIDOS <kbd>⌘ K</kbd></button>
+    </div>
+  </header>;
 }
 
 function PageHead({ eyebrow, title, copy, actions }:{ eyebrow:string; title:string; copy:string; actions?:React.ReactNode }) {
