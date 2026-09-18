@@ -1,6 +1,5 @@
 import { Activity, Boxes, ChartNoAxesCombined, Database, Gauge, Hexagon, LogOut, Menu, Sparkles, X } from "lucide-react";
-import type { Session } from "./Login";
-import type { Page } from "../types";
+import type { DisplaySession, Page } from "../types";
 
 const nav: { page: Page; icon: typeof Gauge; eyebrow?: string }[] = [
   { page:"Command center", icon:Gauge },
@@ -12,7 +11,7 @@ const nav: { page: Page; icon: typeof Gauge; eyebrow?: string }[] = [
 
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join("") || "?";
 
-interface Props { page: Page; setPage: (page: Page) => void; open: boolean; setOpen: (v:boolean) => void; session: Session; onLogout: () => void; }
+interface Props { page: Page; setPage: (page: Page) => void; open: boolean; setOpen: (v:boolean) => void; session: DisplaySession; onLogout: () => void; }
 
 export function Sidebar({ page, setPage, open, setOpen, session, onLogout }: Props) {
   return <>

@@ -35,3 +35,10 @@ export interface Activity {
 }
 
 export type Page = "Command center" | "Inventory" | "Forecast" | "Action center" | "Data hub";
+
+export interface DisplaySession {
+  name: string;
+  workspace: string;
+  email?: string;
+  picture?: string;
+}

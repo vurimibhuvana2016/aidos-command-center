@@ -1,25 +1,36 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, Bell, Box, Boxes, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, CircleDollarSign, Clock3, CloudUpload, Download, FileCheck2, Filter, Gauge, IndianRupee, Info, Layers3, PackageCheck, Plus, RefreshCcw, Search, ShieldCheck, Sparkles, TrendingDown, TrendingUp, TriangleAlert, Upload, WalletCards, X } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, Cell, Line, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import type { User } from "@supabase/supabase-js";
 import { Copilot } from "./components/Copilot";
-import { Login, type Session } from "./components/Login";
+import { Login } from "./components/Login";
 import { MetricCard } from "./components/MetricCard";
 import { RiskPill } from "./components/RiskPill";
 import { Sidebar } from "./components/Sidebar";
 import { categoryMix, initialActivity, products as demoProducts, salesTrend } from "./data/demo";
 import { generateWorkspaceData } from "./lib/demoGenerator";
 import { analyzeAll } from "./lib/intelligence";
-import type { Activity, Insight, Page, Product, Risk } from "./types";
+import { supabase } from "./lib/supabase";
+import type { Activity, DisplaySession, Insight, Page, Product, Risk } from "./types";
 
 const STORAGE_KEY = "aidos-command-center-v1";
-const SESSION_KEY = "aidos-session-v1";
 const money = (n:number) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const num = (n:number) => Math.round(n).toLocaleString("en-IN");
 
+function toDisplaySession(user: User): DisplaySession {
+  const meta = user.user_metadata ?? {};
+  return {
+    name: meta.name || meta.full_name || (user.email ? user.email.split("@")[0] : "there"),
+    workspace: meta.workspace || "K&K Aarnas",
+    email: user.email,
+    picture: meta.avatar_url || meta.picture,
+  };
+}
+
 function App() {
-  const [session, setSession] = useState<Session | null>(() => {
-    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); } catch { return null; }
-  });
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const session = authUser ? toDisplaySession(authUser) : null;
   const [page, setPage] = useState<Page>("Command center");
   const [products, setProducts] = useState<Product[]>(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")?.products ?? demoProducts; } catch { return demoProducts; }
@@ -37,6 +48,24 @@ function App() {
 
   useEffect(() => localStorage.setItem(STORAGE_KEY, JSON.stringify({ products, activity, customFields })), [products, activity, customFields]);
   useEffect(() => { const key = (e:KeyboardEvent) => { if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); setCopilot(v=>!v); } }; window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => { setAuthUser(data.session?.user ?? null); setAuthLoading(false); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, authSession) => { setAuthUser(authSession?.user ?? null); });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+  useEffect(() => {
+    if (!authUser) return;
+    let hasExistingWorkspaceData = false;
+    try { hasExistingWorkspaceData = Array.isArray(JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")?.products); } catch { /* ignore */ }
+    if (!hasExistingWorkspaceData) {
+      const s = toDisplaySession(authUser);
+      const generated = generateWorkspaceData(s.workspace || s.name);
+      setProducts(generated.products);
+      setActivity(generated.activity);
+      setCustomFields([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser?.id]);
   function notify(message:string) { setToast(message); window.setTimeout(() => setToast(""), 2800); }
   function addActivity(label:string, type:Activity["type"] = "approved") { setActivity(a => [{ id:String(Date.now()), type, label, time:"Just now" }, ...a]); notify("Added to today's action plan"); }
   function resetDemo() {
@@ -65,21 +94,10 @@ function App() {
   function mergeCustomFields(names:string[]) {
     setCustomFields(cf => Array.from(new Set([...cf, ...names])));
   }
-  function handleLogin(s: Session) {
-    setSession(s);
-    try { localStorage.setItem(SESSION_KEY, JSON.stringify(s)); } catch { /* ignore */ }
-    let hasExistingWorkspaceData = false;
-    try { hasExistingWorkspaceData = Array.isArray(JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")?.products); } catch { /* ignore */ }
-    if (!hasExistingWorkspaceData) {
-      const generated = generateWorkspaceData(s.workspace || s.name);
-      setProducts(generated.products);
-      setActivity(generated.activity);
-      setCustomFields([]);
-    }
-  }
-  function handleLogout() { setSession(null); try { localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ } }
+  function handleLogout() { supabase.auth.signOut(); }
 
-  if (!session) return <Login onLogin={handleLogin}/>;
+  if (authLoading) return <div className="login-screen"/>;
+  if (!session) return <Login/>;
 
   return <div className="app-shell">
     <Sidebar page={page} setPage={setPage} open={mobileNav} setOpen={setMobileNav} session={session} onLogout={handleLogout}/>
