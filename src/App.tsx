@@ -151,7 +151,7 @@ function Dashboard({ insights, activity, setPage, onApprove, openCopilot, name }
   const riskRank = { critical: 0, watch: 1, healthy: 2 };
   const top = [...insights].sort((a,b) => riskRank[a.risk] - riskRank[b.risk]);
   return <>
-    <PageHead eyebrow="Monday · 14 September" title={`Good morning, ${name}.`} copy="Here’s what needs your attention across the Hyderabad depot." actions={<><button className="secondary" onClick={()=>setPage("Data hub")}><Upload size={16}/> Import data</button><button className="primary" onClick={openCopilot}><Sparkles size={16}/> Ask AIDOS</button></>}/>
+    <PageHead eyebrow="Monday · 14 September" title={`Hello, ${name}.`} copy="Here’s what needs your attention across the Hyderabad depot." actions={<><button className="secondary" onClick={()=>setPage("Data hub")}><Upload size={16}/> Import data</button><button className="primary" onClick={openCopilot}><Sparkles size={16}/> Ask AIDOS</button></>}/>
     <section className="attention-strip"><span className="attention-icon"><TriangleAlert size={20}/></span><div><strong>{critical.length} decisions need attention today</strong><p>Acting now could protect <b>{money(riskValue)}</b> in inventory value and maintain service levels.</p></div><button onClick={()=>setPage("Action center")}>Review decisions <ArrowRight size={16}/></button></section>
     <section className="metric-grid">
       <MetricCard label="Inventory value" value={money(inventoryValue)} note="Across 8 active SKUs" icon={WalletCards} tone="blue" trend="+4.2%"/>
